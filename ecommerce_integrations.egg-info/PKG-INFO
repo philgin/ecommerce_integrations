@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: ecommerce-integrations
+Version: 1.17.0
+Summary: Ecommerce integrations for ERPNext
+Author: Frappe
+Author-email: developers@frappe.io
+License-File: LICENSE
