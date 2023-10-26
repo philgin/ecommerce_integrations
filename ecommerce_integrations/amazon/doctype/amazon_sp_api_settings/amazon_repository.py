@@ -214,40 +214,49 @@ class AmazonRepository:
 
 ## Create customer Modified by Kurt	
 	def create_customer(self, order):
-   
-		    order_customer_name = ""
-		    buyer_info = order.get("BuyerInfo")
-		
+	    """Creates a new customer and contact in ERPNext.
+	
+	    Args:
+	        order: The Amazon order object.
+	
+	    Returns:
+	        The name and email address of the new customer.
+	    """
+	
+	    order_customer_name = ""
+	    buyer_info = order.get("BuyerInfo")
+	
 	    if buyer_info and buyer_info.get("BuyerName"):
-			order_customer_name = buyer_info.get("BuyerName")
+	        order_customer_name = buyer_info.get("BuyerName")
 	    else:
-		        order_customer_name = f"Buyer - {order.get('AmazonOrderId')}"
-		
+	        order_customer_name = f"Buyer - {order.get('AmazonOrderId')}"
+	
 	    existing_customer_name = frappe.db.get_value(
-			"Customer", filters={"name": order_customer_name}, fieldname="name"
-		    )
-		
+	        "Customer", filters={"name": order_customer_name}, fieldname="name"
+	    )
+	
 	    if existing_customer_name:
-		        return existing_customer_name
+	        return existing_customer_name
 	    else:
-		        new_customer = frappe.get_doc(
-		            {"doctype": "Customer", "customer_name": order_customer_name, "customer_group": self.amz_setting.customer_group,
-		            "territory": self.amz_setting.territory, "customer_type": self.amz_setting.customer_type}
-		        )
-		
-		        # Added by Kurt
-		if buyer_info and buyer_info.get("BuyerEmail"):
-		    new_customer.email = buyer_info.get("BuyerEmail")
-		
-			new_customer.insert()
-		
-			new_contact = frappe.get_doc({"doctype": "Contact", "first_name": order_customer_name})
-		
-			new_contact.append("links", {"link_doctype": "Customer", "link_name": new_customer.name})
-		
-			new_contact.insert()
-
-        		return new_customer.name, new_customer.email
+	        new_customer = frappe.get_doc(
+	            {"doctype": "Customer", "customer_name": order_customer_name, "customer_group": self.amz_setting.customer_group,
+	             "territory": self.amz_setting.territory, "customer_type": self.amz_setting.customer_type}
+	        )
+	
+	        # Added by Kurt
+	        if buyer_info and buyer_info.get("BuyerEmail"):
+	            new_customer.email = buyer_info.get("BuyerEmail")
+	
+	        new_customer.insert()
+	
+	        new_contact = frappe.get_doc({"doctype": "Contact", "first_name": order_customer_name})
+	
+	        new_contact.append("links", {"link_doctype": "Customer", "link_name": new_customer.name})
+	
+	        new_contact.insert()
+	
+	        # **correction:**
+	        return new_customer.name, new_customer.email
 
 ## End of Modification
 
