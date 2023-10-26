@@ -196,9 +196,9 @@ class AmazonRepository:
 			new_customer = frappe.get_doc({"doctype":"Customer", "customer_name": order_customer_name, "customer_group": self.amz_setting.customer_group,
 			"territory": self.amz_setting.territory, "customer_type": self.amz_setting.customer_type})
 			
-			try:
+			##try:
 				# added by Kurt
-				new_customer.email_id = buyer_info.get("BuyerEmail")
+			##	new_customer.email_id = buyer_info.get("BuyerEmail")
 			except:
 				pass
 			
@@ -211,6 +211,13 @@ class AmazonRepository:
 			new_contact.insert()
 			
 			return new_customer.name
+		else: #email patch by Kurt
+			if buyer_info and buyer_info.get("BuyerEmail"):
+			    email_id = buyer_info.get("BuyerEmail")
+			    new_contact.email_id = email_id
+			    new_contact.update()
+
+			return new_customer.name, email_id
 
 	def create_address(self, order, customer_name):
 		shipping_address = order.get("ShippingAddress")
