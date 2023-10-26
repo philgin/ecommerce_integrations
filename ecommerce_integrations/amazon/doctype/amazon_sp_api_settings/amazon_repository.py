@@ -163,61 +163,93 @@ class AmazonRepository:
 	def get_orders_instance(self):
 		return sp_api.Orders(**self.instance_params)
 
+##	def create_customer(self, order):
+##		order_customer_name = ""
+##		buyer_info = order.get("BuyerInfo")
+##
+##		if buyer_info and buyer_info.get("BuyerName"):
+##			order_customer_name = buyer_info.get("BuyerName")
+##		else:
+##			order_customer_name = f"Buyer - {order.get('AmazonOrderId')}"
+##
+##		existing_customer_name = frappe.db.get_value(
+##			"Customer", filters={"name": order_customer_name}, fieldname="name"
+##		)
+##
+##		if existing_customer_name:
+##			filters = [
+##				["Dynamic Link", "link_doctype", "=", "Customer"],
+##				["Dynamic Link", "link_name", "=", existing_customer_name],
+##				["Dynamic Link", "parenttype", "=", "Contact"],
+##			]
+##
+##			existing_contacts = frappe.get_list("Contact", filters)
+##
+##			if not existing_contacts:
+##				new_contact = frappe.new_doc("Contact")
+##				new_contact.first_name = order_customer_name
+##				new_contact.append("links", {"link_doctype": "Customer", "link_name": existing_customer_name})
+##				new_contact.insert()
+##
+##			return existing_customer_name
+##		else:
+##			new_customer = frappe.get_doc({"doctype":"Customer", "customer_name": order_customer_name, "customer_group": self.amz_setting.customer_group,
+##			"territory": self.amz_setting.territory, "customer_type": self.amz_setting.customer_type})
+##			
+##			try:
+##				# added by Kurt
+##				new_customer.email_id = buyer_info.get("BuyerEmail")
+##			except:
+##				pass
+##			
+##			new_customer.insert()
+##			
+##			new_contact = frappe.get_doc({"doctype": "Contact", "first_name": order_customer_name})
+##
+##			new_contact.append("links", {"link_doctype": "Customer", "link_name": new_customer.name})
+##
+##			new_contact.insert()
+##			
+##			return new_customer.name
+
+## Create customer Modified by Kurt	
 	def create_customer(self, order):
-		order_customer_name = ""
-		buyer_info = order.get("BuyerInfo")
+   
+		    order_customer_name = ""
+		    buyer_info = order.get("BuyerInfo")
+		
+		    if buyer_info and buyer_info.get("BuyerName"):
+		        order_customer_name = buyer_info.get("BuyerName")
+		    else:
+		        order_customer_name = f"Buyer - {order.get('AmazonOrderId')}"
+		
+		    existing_customer_name = frappe.db.get_value(
+		        "Customer", filters={"name": order_customer_name}, fieldname="name"
+		    )
+		
+		    if existing_customer_name:
+		        return existing_customer_name
+		    else:
+		        new_customer = frappe.get_doc(
+		            {"doctype": "Customer", "customer_name": order_customer_name, "customer_group": self.amz_setting.customer_group,
+		            "territory": self.amz_setting.territory, "customer_type": self.amz_setting.customer_type}
+		        )
+		
+		        # Added by Kurt
+		        if buyer_info and buyer_info.get("BuyerEmail"):
+		            new_customer.email = buyer_info.get("BuyerEmail")
+		
+		        new_customer.insert()
+		
+		        new_contact = frappe.get_doc({"doctype": "Contact", "first_name": order_customer_name})
+		
+		        new_contact.append("links", {"link_doctype": "Customer", "link_name": new_customer.name})
+		
+		        new_contact.insert()
 
-		if buyer_info and buyer_info.get("BuyerName"):
-			order_customer_name = buyer_info.get("BuyerName")
-		else:
-			order_customer_name = f"Buyer - {order.get('AmazonOrderId')}"
+        return new_customer.name, new_customer.email
 
-		existing_customer_name = frappe.db.get_value(
-			"Customer", filters={"name": order_customer_name}, fieldname="name"
-		)
-
-		if existing_customer_name:
-			filters = [
-				["Dynamic Link", "link_doctype", "=", "Customer"],
-				["Dynamic Link", "link_name", "=", existing_customer_name],
-				["Dynamic Link", "parenttype", "=", "Contact"],
-			]
-
-			existing_contacts = frappe.get_list("Contact", filters)
-
-			if not existing_contacts:
-				new_contact = frappe.new_doc("Contact")
-				new_contact.first_name = order_customer_name
-				new_contact.append("links", {"link_doctype": "Customer", "link_name": existing_customer_name})
-				new_contact.insert()
-
-			return existing_customer_name
-		else:
-			new_customer = frappe.get_doc({"doctype":"Customer", "customer_name": order_customer_name, "customer_group": self.amz_setting.customer_group,
-			"territory": self.amz_setting.territory, "customer_type": self.amz_setting.customer_type})
-			
-			##try:
-				# added by Kurt
-			##	new_customer.email_id = buyer_info.get("BuyerEmail")
-			except:
-				pass
-			
-			new_customer.insert()
-			
-			new_contact = frappe.get_doc({"doctype": "Contact", "first_name": order_customer_name})
-
-			new_contact.append("links", {"link_doctype": "Customer", "link_name": new_customer.name})
-
-			new_contact.insert()
-			
-			return new_customer.name
-		else: #email patch by Kurt
-			if buyer_info and buyer_info.get("BuyerEmail"):
-			    email_id = buyer_info.get("BuyerEmail")
-			    new_contact.email_id = email_id
-			    new_contact.update()
-
-			return new_customer.name, email_id
+## End of Modification
 
 	def create_address(self, order, customer_name):
 		shipping_address = order.get("ShippingAddress")
