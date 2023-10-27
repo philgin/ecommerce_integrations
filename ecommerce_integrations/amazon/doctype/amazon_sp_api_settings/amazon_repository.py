@@ -227,6 +227,7 @@ class AmazonRepository:
 		else:
 			new_customer = frappe.get_doc(
 				{"doctype": "Customer", "customer_name": order_customer_name, "customer_group": self.amz_setting.customer_group,"territory": self.amz_setting.territory, "customer_type": self.amz_setting.customer_type}
+			)
 		if buyer_info and buyer_info.get("BuyerEmail"):
 			new_customer.email = buyer_info.get("BuyerEmail")
 			new_customer.insert()
